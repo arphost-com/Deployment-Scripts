@@ -4,6 +4,7 @@ whmcs_setup-debian12.sh is a WHMCS Deployment script for Debian 12. Install Debi
 
 # wordpress_deploy.sh
 wordpress_deploy.sh is a Wordpress Deployment script for Debian 12. Install Debian 12 then run the script like below.
+
 `sudo ./wordpress-autodeploy.sh example.com`
 1. The script will now:
 2. Install and configure WordPress
