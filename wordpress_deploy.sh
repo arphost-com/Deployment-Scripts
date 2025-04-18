@@ -192,10 +192,11 @@ authenticator = apache
 installer = apache
 agree-tos = True
 redirect = True
+register-unsafely-without-email = True
 EOF
 
 # Run certbot with the configuration file
-certbot --config /tmp/certbot.ini -d $DOMAIN_NAME -d www.$DOMAIN_NAME
+certbot --config /tmp/certbot.ini -d $DOMAIN_NAME -d www.$DOMAIN_NAME --non-interactive
 
 # Clean up temporary file
 rm /tmp/certbot.ini
