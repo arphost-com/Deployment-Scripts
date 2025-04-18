@@ -21,6 +21,21 @@ fi
 
 DOMAIN_NAME=$1
 
+# Function to check DNS resolution
+check_dns() {
+    local domain=$1
+    if ! host $domain &>/dev/null; then
+        echo "Error: Domain $domain does not resolve to this server's IP address"
+        echo "Please ensure your DNS records are properly configured before running this script"
+        exit 1
+    fi
+}
+
+# Check DNS resolution for both domain and www subdomain
+echo "Checking DNS configuration..."
+check_dns $DOMAIN_NAME
+check_dns www.$DOMAIN_NAME
+
 # Generate random passwords
 MYSQL_ROOT_PASSWORD=$(openssl rand -base64 12)
 MYSQL_WP_PASSWORD=$(openssl rand -base64 12)
@@ -168,7 +183,22 @@ sed -i 's/memory_limit = 128M/memory_limit = 256M/' /etc/php/8.2/apache2/php.ini
 # Install and configure Let's Encrypt
 echo "Installing and configuring Let's Encrypt..."
 apt-get install -y certbot python3-certbot-apache
-certbot --apache -d $DOMAIN_NAME -d www.$DOMAIN_NAME --non-interactive --agree-tos --email webmaster@$DOMAIN_NAME --redirect
+
+# Create a temporary file for certbot configuration
+cat > /tmp/certbot.ini <<EOF
+rsa-key-size = 2048
+email = webmaster@$DOMAIN_NAME
+authenticator = apache
+installer = apache
+agree-tos = True
+redirect = True
+EOF
+
+# Run certbot with the configuration file
+certbot --config /tmp/certbot.ini -d $DOMAIN_NAME -d www.$DOMAIN_NAME
+
+# Clean up temporary file
+rm /tmp/certbot.ini
 
 # Restart services to apply changes
 echo "Restarting services..."
@@ -178,4 +208,4 @@ systemctl restart apache2
 echo "WordPress installation completed!"
 echo "Credentials have been saved to /root/wordpress_credentials.txt"
 echo "WordPress is available at https://$DOMAIN_NAME"
-echo "Please complete the WordPress setup by visiting https://$DOMAIN_NAME" 
+echo "Please complete the WordPress setup by visiting https://$DOMAIN_NAME"
